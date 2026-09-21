@@ -1,0 +1,19 @@
+# Web3 Red Team Simulator — MVP 의존성 (Python 3.10+)
+#
+# 참고: 스펙 기준은 Web3.py v6.x 이다. Python 3.10~3.12 환경에서는
+# 아래 web3 v6 핀이 그대로 설치된다. (Python 3.13/3.14 에서는 v6 의
+# C-extension 의존성(lru-dict 등) 빌드 실패로 v7 이 대신 설치될 수 있으며,
+# 본 코드는 v6/v7 양쪽 API 호환으로 작성되어 있다.)
+
+web3>=6.20.0,<8.0.0
+py-solc-x>=2.0.0
+PyGithub>=2.3.0
+slither-analyzer>=0.10.0
+fastapi>=0.110.0
+uvicorn>=0.29.0
+pydantic>=2.6.0
+requests>=2.31.0
+
+# 개발/테스트
+pytest>=8.0.0
+httpx>=0.27.0

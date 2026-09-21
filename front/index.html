@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS MISSION CONTROL</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NEXUS MISSION CONTROL — Cyber Defense × Neural Forest
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#050810; --bg1:#0a0f1e;
+  --cyan:#22d3ee; --violet:#a78bfa; --emerald:#34d399; --amber:#fbbf24;
+  --text:#dbe4f0; --dim:#8fa0b8; --faint:#5b6b85;
+  --line:rgba(255,255,255,.08);
+  --glass:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+  --ease:cubic-bezier(.22,.9,.35,1);
+  --mono:'JetBrains Mono','Pretendard',Consolas,monospace;
+}
+html,body{height:100%}
+body{
+  background:radial-gradient(120% 90% at 50% 0%,var(--bg1) 0%,var(--bg0) 72%);
+  color:var(--text);
+  font-family:'Pretendard Variable',Pretendard,-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
+  font-size:13px; overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(34,211,238,.3)}
+
+/* ---------- background layers ---------- */
+#fx{position:fixed;inset:0;z-index:0}
+.overlay{position:fixed;inset:0;z-index:1;pointer-events:none}
+#grid{
+  background-image:
+    linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);
+  background-size:52px 52px;
+}
+#noise{opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#vignette{background:radial-gradient(115% 92% at 50% 42%,transparent 55%,rgba(2,5,12,.6) 100%)}
+
+/* ---------- app frame ---------- */
+#app{
+  position:relative;z-index:2;height:100vh;
+  display:grid;grid-template-rows:62px minmax(0,1fr) 88px;
+  opacity:0;animation:appIn .8s ease-out .1s forwards;
+}
+@keyframes appIn{to{opacity:1}}
+
+/* ---------- header ---------- */
+header{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:0 22px;border-bottom:1px solid var(--line);
+  background:rgba(6,10,20,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.brand{display:flex;align-items:center;gap:13px;justify-self:start}
+.logo{width:36px;height:36px;flex:none;filter:drop-shadow(0 0 8px rgba(34,211,238,.35))}
+.logo .core{transform-box:fill-box;transform-origin:center;animation:corePulse 2.4s ease-in-out infinite}
+@keyframes corePulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.3);opacity:1}}
+.sys-name{font-weight:800;font-size:15px;letter-spacing:.22em;color:#eaf2fb;white-space:nowrap}
+.sys-name em{font-style:normal;color:var(--cyan)}
+.sys-sub{font-size:9.5px;color:var(--faint);letter-spacing:.1em;margin-top:3px;white-space:nowrap}
+.phase-block{width:340px}
+.phase-label{display:flex;justify-content:center;gap:9px;font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;color:var(--dim)}
+#phaseTag{color:var(--cyan);font-weight:700}
+.phase-bar{height:3px;border-radius:2px;background:rgba(255,255,255,.07);margin:7px 0 6px;overflow:hidden}
+.phase-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet));box-shadow:0 0 10px rgba(34,211,238,.7)}
+.phase-dots{display:flex;justify-content:center;gap:6px}
+.phase-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15);transition:.4s}
+.phase-dots i.on{background:var(--cyan);box-shadow:0 0 8px rgba(34,211,238,.8)}
+.top-right{display:flex;align-items:center;gap:18px;justify-self:end}
+.live{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.2em;color:var(--emerald)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:dotPulse 1.6s ease-out infinite}
+@keyframes dotPulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.55)}70%{box-shadow:0 0 0 7px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+.cycle-box{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.12em;display:flex;gap:8px;align-items:baseline}
+.cycle-box b{color:#eaf2fb;font-size:15px;font-weight:700}
+.cycle-box b.tick{animation:cycFlash .9s ease-out}
+@keyframes cycFlash{0%{color:var(--cyan);text-shadow:0 0 18px rgba(34,211,238,.95)}100%{}}
+.clock{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.1em}
+
+/* ---------- glass ---------- */
+.glass{
+  background:var(--glass);
+  border:1px solid var(--line);border-radius:14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 0 26px rgba(255,255,255,.015),0 8px 30px rgba(0,0,0,.35);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+
+/* ---------- main ---------- */
+main{display:grid;grid-template-columns:minmax(0,1fr) 384px;gap:14px;padding:14px 22px;min-height:0}
+
+/* center: agent fleet (3×2 그리드) */
+#fleet{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:7px;min-height:0}
+#belt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:12px;min-height:0}
+.agent{display:flex;flex-direction:column;min-height:0;padding:10px 12px 9px;border-radius:13px;
+  transition:transform .25s var(--ease),border-color .25s,box-shadow .25s}
+.agent:hover{transform:translateY(-2px);border-color:rgba(34,211,238,.26);box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 22px rgba(34,211,238,.07)}
+.agent-head{display:flex;align-items:center;gap:8px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:6px}
+.agent-name{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.1em}
+.agent-role{font-size:9.5px;color:var(--faint);border:1px solid rgba(255,255,255,.1);padding:2px 7px;border-radius:20px;letter-spacing:.06em}
+.agent-status{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.dot{width:7px;height:7px;border-radius:50%;background:#475569;transition:.35s;flex:none}
+.agent.run .dot{background:var(--emerald);animation:dotPulse 1.4s ease-out infinite}
+.agent.done .dot{background:var(--emerald);box-shadow:0 0 9px rgba(52,211,153,.85)}
+.agent.run .agent-status{color:var(--emerald)}
+.agent.done .agent-status{color:#7ddcb8}
+.logs{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:1px}
+.log-idle{font-family:var(--mono);font-size:10px;color:var(--faint);animation:blink 1.6s step-end infinite}
+.log-line{display:grid;grid-template-columns:54px 30px 1fr;gap:7px;font-family:var(--mono);font-size:10.5px;line-height:1.7;animation:logIn .22s var(--ease) both;white-space:nowrap}
+.log-line .t{color:#55688f}
+.log-line .lv{font-weight:700;font-size:9px;align-self:center;letter-spacing:.03em}
+.lv.info{color:var(--cyan)} .lv.ok{color:var(--emerald)} .lv.warn{color:var(--amber)}
+.log-line .msg{color:#b9c6da;overflow:hidden;text-overflow:ellipsis}
+.log-line.ok .msg{color:#b4d8c6}
+@keyframes logIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+#netstat{text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--faint);white-space:nowrap}
+
+/* right: report */
+#report{position:relative;min-height:0;overflow:hidden;display:flex;flex-direction:column;
+  transition:border-color .6s,box-shadow .6s}
+#report.assembling{border-color:rgba(34,211,238,.4);
+  box-shadow:0 0 0 1px rgba(34,211,238,.18),0 0 70px rgba(34,211,238,.13),inset 0 1px 0 rgba(255,255,255,.06),inset 0 0 50px rgba(167,139,250,.05)}
+#report.done{border-color:rgba(167,139,250,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 8px 30px rgba(0,0,0,.35),0 0 34px rgba(167,139,250,.1)}
+.report-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:17px;padding:30px;text-align:center}
+#report:not(.waiting) .report-empty{display:none}
+.orbit{width:70px;height:70px;border-radius:50%;position:relative}
+.orbit::before{content:'';position:absolute;inset:0;border-radius:50%;border:1px solid transparent;
+  border-top-color:var(--cyan);border-right-color:rgba(167,139,250,.55);animation:spin 1.5s linear infinite}
+.orbit::after{content:'';position:absolute;inset:25px;border-radius:50%;
+  background:radial-gradient(circle,rgba(34,211,238,.9),rgba(34,211,238,0) 72%);animation:orbitPulse 1.5s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes orbitPulse{0%,100%{transform:scale(.75);opacity:.55}50%{transform:scale(1.18);opacity:1}}
+.re-title{font-size:12.5px;font-weight:600;letter-spacing:.04em;color:#c3d1e6}
+.re-sub{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:.1em}
+.shimmer{width:78%;display:flex;flex-direction:column;gap:8px}
+.shimmer i{height:8px;border-radius:4px;
+  background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.04) 75%);
+  background-size:200% 100%;animation:shimmer 1.6s linear infinite}
+.shimmer i:nth-child(1){width:100%}.shimmer i:nth-child(2){width:86%}
+.shimmer i:nth-child(3){width:93%}.shimmer i:nth-child(4){width:62%}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+.report-body{display:none;flex-direction:column;padding:17px 19px 15px;min-height:0;overflow-y:auto;scrollbar-width:none}
+.report-body::-webkit-scrollbar{display:none}
+#report:not(.waiting) .report-body{display:flex}
+.rv{opacity:0;transform:translateY(9px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.rv.show{opacity:1;transform:none}
+.report-badge{align-self:flex-start;font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--violet);
+  border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.08);padding:3px 9px;border-radius:20px}
+.report-title{font-size:17.5px;font-weight:800;letter-spacing:-.01em;margin:10px 0 5px;display:flex;align-items:center;color:#eef4fb;line-height:1.4}
+.caret{display:inline-block;width:9px;height:1.05em;margin-left:3px;background:var(--cyan);vertical-align:-.15em;opacity:0;flex:none}
+.typing .caret{opacity:1;animation:blink 1s step-end infinite}
+.report-meta{font-family:var(--mono);font-size:9.8px;color:var(--faint);letter-spacing:.03em;line-height:1.75}
+.rsec{margin-top:11px}
+.rsec h3{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--dim);margin-bottom:7px}
+.rsec h3::before{content:'';width:14px;height:2px;background:linear-gradient(90deg,var(--cyan),transparent);border-radius:1px}
+.report-summary{font-size:12px;line-height:1.75;color:#c6d3e6;min-height:46px}
+.finding,.sugg{opacity:0;transform:translateY(8px);transition:opacity .45s var(--ease),transform .45s var(--ease)}
+.finding.show,.sugg.show{opacity:1;transform:none}
+.finding{display:flex;gap:10px;padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.028);
+  border:1px solid rgba(255,255,255,.05);margin-bottom:5px;font-size:11.4px;line-height:1.55;color:#b6c4d8}
+.fnum{font-family:var(--mono);color:var(--cyan);font-weight:700;font-size:11px;flex:none;padding-top:1px}
+.sugg{display:flex;gap:9px;font-size:11.4px;line-height:1.55;color:#aebdd3;margin-bottom:4px}
+.chev{color:var(--violet);flex:none;font-size:10px;padding-top:2px}
+.report-footer{margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.conf-row{display:flex;align-items:center;gap:12px;font-size:10.5px;color:var(--dim)}
+.conf-row .lbl{letter-spacing:.08em;flex:none}
+.conf-bar{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden}
+.conf-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet));
+  border-radius:3px;transition:width 1.1s var(--ease);box-shadow:0 0 8px rgba(34,211,238,.6)}
+.conf-val{font-family:var(--mono);font-weight:700;color:var(--cyan)}
+.next-note{font-family:var(--mono);font-size:9.3px;color:var(--faint);letter-spacing:.08em;margin-top:8px}
+
+/* ---------- footer: metrics ---------- */
+footer{display:flex;align-items:center;gap:24px;padding:0 22px;border-top:1px solid var(--line);
+  background:rgba(6,10,20,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.engine{flex:none;width:224px}
+.engine-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+.engine-head .t{font-size:10px;font-weight:700;letter-spacing:.12em;color:#c3d1e6}
+.engine-head .s{font-family:var(--mono);font-size:8.5px;color:var(--faint);letter-spacing:.14em}
+.vbadges{display:flex;gap:6px}
+.vbadge{font-family:var(--mono);font-size:10.5px;padding:4px 10px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.1);color:var(--faint);background:rgba(255,255,255,.02);transition:.3s}
+.vbadge.on{color:var(--cyan);border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.08);box-shadow:0 0 14px rgba(34,211,238,.12)}
+.vbadge.flash{animation:vFlash 1s var(--ease)}
+@keyframes vFlash{0%{transform:scale(1.4);background:rgba(34,211,238,.35);box-shadow:0 0 0 6px rgba(34,211,238,.15),0 0 26px rgba(34,211,238,.65);color:#eafcff}100%{}}
+.chart-block{flex:1;min-width:180px;max-width:470px}
+.chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.chart-head span{font-size:9.5px;letter-spacing:.14em;color:var(--faint)}
+.chart-head b{font-family:var(--mono);font-size:12px;color:var(--violet)}
+#chart{width:100%;height:56px;display:block}
+.cbar{fill:rgba(34,211,238,.13)}
+.cbar.hl{fill:rgba(34,211,238,.42)}
+.cline{fill:none;stroke:url(#lg);stroke-width:1.5;filter:drop-shadow(0 0 5px rgba(34,211,238,.45))}
+.cbase{stroke:rgba(255,255,255,.1);stroke-width:1}
+.stats{display:flex;gap:26px;margin-left:auto;flex:none}
+.stat{display:flex;flex-direction:column;gap:5px}
+.s-label{font-size:9px;letter-spacing:.14em;color:var(--faint)}
+.s-row{display:flex;align-items:baseline;gap:4px}
+.s-val{font-family:var(--mono);font-size:16px;font-weight:700;color:#e8f0fa;transition:color .3s,text-shadow .3s}
+.s-val.bump{color:var(--emerald);text-shadow:0 0 16px rgba(52,211,153,.65)}
+.s-unit{font-family:var(--mono);font-size:9.5px;color:var(--faint)}
+#replay{flex:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--cyan);
+  background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.35);border-radius:10px;
+  padding:10px 16px;cursor:pointer;transition:.25s;display:flex;align-items:center;gap:8px}
+#replay:hover{background:rgba(34,211,238,.14);box-shadow:0 0 20px rgba(34,211,238,.25)}
+#replay:active{transform:scale(.95)}
+#replay svg{width:13px;height:13px}
+
+/* ---------- responsive ---------- */
+@media (max-width:1340px){
+  main{grid-template-columns:minmax(0,1fr) 354px}
+  .phase-block{width:280px}
+}
+@media (max-width:1200px){
+  main{grid-template-columns:minmax(0,1fr) 330px;gap:11px;padding:11px 14px}
+  #belt{gap:9px}
+  .sys-sub{display:none}
+  .phase-block{width:230px}
+  .stats{gap:16px}
+  .engine{width:196px}
+  footer{gap:16px}
+}
+@media (max-width:1080px){
+  main{grid-template-columns:minmax(0,1fr) 306px;gap:9px;padding:9px 12px}
+  #belt{gap:8px}
+  header{padding:0 14px}
+  .clock{display:none}
+  .log-line{font-size:9.3px;grid-template-columns:46px 26px 1fr;gap:5px}
+  .agent-role{display:none}
+  .s-val{font-size:14px}
+  #replay{padding:9px 12px}
+  .chart-block{min-width:140px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="fx"></canvas>
+<div class="overlay" id="grid"></div>
+<div class="overlay" id="noise"></div>
+<div class="overlay" id="vignette"></div>
+
+<div id="app">
+  <!-- ======== HEADER ======== -->
+  <header>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 36 36" fill="none">
+        <defs><linearGradient id="lg2" x1="0" y1="0" x2="36" y2="36">
+          <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/>
+        </linearGradient></defs>
+        <path d="M18 3 L31 10.5 V25.5 L18 33 L5 25.5 V10.5 Z" stroke="url(#lg2)" stroke-width="1.6" stroke-linejoin="round"/>
+        <circle class="core" cx="18" cy="18" r="3.1" fill="#22d3ee"/>
+        <circle cx="18" cy="18" r="7.5" stroke="rgba(34,211,238,.35)" stroke-width="1" stroke-dasharray="2 3"/>
+      </svg>
+      <div>
+        <div class="sys-name">NEXUS <em>MISSION CONTROL</em></div>
+        <div class="sys-sub">자율 사이버 방어 관제 · NEURAL FOREST SOC 07</div>
+      </div>
+    </div>
+    <div class="phase-block">
+      <div class="phase-label"><span id="phaseTag">PHASE 01</span><span>/</span><span id="phaseName">병렬 수집 · 스캔</span></div>
+      <div class="phase-bar"><i id="phaseFill"></i></div>
+      <div class="phase-dots" id="phaseDots"><i class="on"></i><i></i><i></i></div>
+    </div>
+    <div class="top-right">
+      <div class="live"><span class="live-dot"></span>LIVE</div>
+      <div class="cycle-box">CYCLE <b id="cycleNum">007</b></div>
+      <div class="clock" id="clock">00:00:00</div>
+    </div>
+  </header>
+
+  <!-- ======== MAIN ======== -->
+  <main>
+    <section id="fleet" aria-label="에이전트 플릿">
+      <div id="belt"></div>
+      <div id="netstat">SENSORS 16 · FEEDS 18 · SYNC 98.4%</div>
+    </section>
+
+    <section id="report" class="glass waiting" aria-label="위협 분석 보고서">
+      <div class="report-empty">
+        <div class="orbit"></div>
+        <div class="re-title" id="emptyLabel">위협 텔레메트리 수집 중…</div>
+        <div class="shimmer"><i></i><i></i><i></i><i></i></div>
+        <div class="re-sub">CYCLE 완료 시 위협 분석 보고서가 자동 조립됩니다</div>
+      </div>
+      <div class="report-body">
+        <div class="report-badge rv" id="rBadge">CYCLE 007 · 위협 분석 리포트</div>
+        <div class="report-title rv" id="rTitleWrap"><span id="rTitle"></span><span class="caret"></span></div>
+        <div class="report-meta rv" id="rMeta"></div>
+        <div class="rsec rv" id="rSumSec">
+          <h3>요약</h3>
+          <p class="report-summary"><span id="rSumText"></span><span class="caret"></span></p>
+        </div>
+        <div class="rsec rv" id="rFindSec">
+          <h3>핵심 발견사항</h3>
+          <ul id="rFindings" style="list-style:none"></ul>
+        </div>
+        <div class="rsec rv" id="rSuggSec">
+          <h3>개선 제안</h3>
+          <ul id="rSuggs" style="list-style:none"></ul>
+        </div>
+        <div class="report-footer rv" id="rFoot">
+          <div class="conf-row">
+            <span class="lbl">탐지 신뢰도</span>
+            <div class="conf-bar"><i id="confBar"></i></div>
+            <span class="conf-val" id="rConf">0.000</span>
+          </div>
+          <div class="next-note">NEXT CYCLE 준비 중 · 진화된 탐지 룰셋 자동 적용</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======== FOOTER ======== -->
+  <footer>
+    <div class="engine">
+      <div class="engine-head"><span class="t">탐지 룰셋 자가 진화</span><span class="s">SELF-EVOLVING</span></div>
+      <div class="vbadges" id="vbadges"></div>
+    </div>
+    <div class="chart-block">
+      <div class="chart-head"><span>방어 성능 지수 · 최근 12평가</span><b id="chartNow">70.1</b></div>
+      <svg id="chart" viewBox="0 0 300 58" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="s-label">탐지 정확도</span>
+        <div class="s-row"><b class="s-val" id="confVal">0.886</b></div></div>
+      <div class="stat"><span class="s-label">차단한 위협</span>
+        <div class="s-row"><b class="s-val" id="procVal">8,308</b><span class="s-unit">건</span></div></div>
+      <div class="stat"><span class="s-label">평균 대응</span>
+        <div class="s-row"><b class="s-val" id="latVal">462</b><span class="s-unit">ms</span></div></div>
+    </div>
+    <button id="replay" title="처음부터 재생 (R)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/>
+      </svg>REPLAY
+    </button>
+  </footer>
+</div>
+
+<script>
+'use strict';
+/* ================================================================
+   0. 유틸
+================================================================ */
+const $ = s => document.querySelector(s);
+const pad3 = n => String(n).padStart(3,'0');
+const fmtN = n => n.toLocaleString('ko-KR');
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const easeOut = t => 1-Math.pow(1-t,3);
+const easeIO  = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* 사이클 스코프 타이머 (재생 시 전부 해제) */
+let timers = [];
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+const after = (ms,fn) => { const id=setTimeout(fn,ms); timers.push(id); return id; };
+let cycleStart = performance.now();
+const at = (ms,fn) => { const d=Math.max(0, cycleStart+ms-performance.now()); const id=setTimeout(fn,d); timers.push(id); return id; };
+
+/* 트윈 (카운터 애니메이션) */
+const tweensLive = new Set();
+function tween(from,to,dur,fn){
+  const tok={}; tweensLive.add(tok); const t0=performance.now();
+  (function step(t){
+    if(!tweensLive.has(tok)) return;
+    const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+    fn(from+(to-from)*e);
+    if(p<1) requestAnimationFrame(step); else tweensLive.delete(tok);
+  })(t0);
+}
+const killTweens = () => tweensLive.clear();
+
+/* ================================================================
+   1. 데이터 — 사이버 방어 에이전트 / 로그 시나리오 / 보고서
+================================================================ */
+const AGENTS = [
+  { id:'recon', name:'RECON', role:'정찰', accent:'#22d3ee',
+    p1:[c=>['info',`외부 자산 ${fmtN(1240+c*47)}건 스캔 중…`],
+        ()=>['info','오픈 포트 매핑 · 22/80/443 노출 확인'],
+        c=>['ok',`서브도메인 ${42+c%5}건 발견 · 신규 ${2+c%3}건`],
+        ()=>['warn','SSL 인증서 만료 임박 도메인 2건'],
+        ()=>['info','클라우드 버킷 공개 여부 점검…'],
+        ()=>['ok','공개 노출 민감 파일 1건 발견 · 즉시 보고'],
+        c=>['info',`공격 표면 지도 갱신 · 노드 ${fmtN(312+c*9)}개`],
+        ()=>['ok','DNS 레코드 이상 징후 없음']],
+    p2:[()=>['info','스캔 속도 감소 · 결과 집계 중'],
+        ()=>['ok','자산 인벤토리 체크섬 정합']],
+    done:c=>['ok',`✓ 정찰 완료 · 자산 ${fmtN(1284+c*51)}건 지도 갱신`] },
+  { id:'sensor', name:'SENSOR', role:'탐지', accent:'#38bdf8',
+    p1:[c=>['info',`초당 패킷 ${fmtN(82000+c*731)}건 검사 중…`],
+        c=>['ok',`SQL 인젝션 시도 ${3+c%4}건 탐지 · 실시간 차단`],
+        ()=>['warn','비정상 TLS 핸드셰이크 패턴 기록'],
+        c=>['info',`시그니처 룰셋 v${40+c} 적용 · ${fmtN(8400+c*12)}종`],
+        c=>['ok',`포트 스캔 탐지 · 출발지 ${2+c%3}개 블록`],
+        c=>['warn',`DDoS 전조 징후 · 출발지 ${11+c%5}개국`],
+        ()=>['info','DNS 터널링 탐지 모듈 가동'],
+        c=>['ok',`알려진 C2 IP 차단 ${18+c%7}건`]],
+    p2:[()=>['info','탐지 스레드 점진 종료'],
+        c=>['ok',`위협 이벤트 ${24+c%5}건 최종 확정`]],
+    done:c=>['ok',`✓ 탐지 완료 · 위협 이벤트 ${24+c%5}건 ANALYST 전달`] },
+  { id:'analyst', name:'ANALYST', role:'분석', accent:'#a78bfa',
+    p1:[c=>['info',`악성 URL ${2+c%3}건 샌드박스 실행 중…`],
+        ()=>['ok','MITRE ATT&CK 매핑 · T1190 연관 확인'],
+        c=>['info',`IOC ${21+c%7}건 추출 · 위협 인텔 정규화`],
+        ()=>['warn','랜섬웨어 계열 변종 의심 샘플 1건'],
+        c=>['ok',`파일 해시 평가 · 악성 판정 ${62+c%9}%`],
+        c=>['info',`C2 beacon 주기 ${28+c%9}초 패턴 분석`],
+        ()=>['ok','피싱 키트 배포판 지문 매칭 성공'],
+        ()=>['info','행위 기반 분석 · 난독화 레이어 2단 해제']],
+    p2:[()=>['info','분석 결과 최종 스코어링…'],
+        c=>['ok',`악성 판정 ${3+c%3}건 확정 · IOC 공유`]],
+    done:()=>['ok','✓ 분석 완료 · TTP 프로파일 갱신'] },
+  { id:'hunter', name:'HUNTER', role:'헌팅', accent:'#fbbf24',
+    p1:[()=>['info','쿼리 기반 위협 헌팅 개시…'],
+        ()=>['ok','권한 상승 흔적 검색 · 이상 0건'],
+        c=>['warn',`좀비 계정 ${1+c%3}건 발견 · 미사용 ${150+c%40}일`],
+        ()=>['info','터널링/비콘 시그니처 스캔 중'],
+        ()=>['warn','가로이동 의심 경로 1건 추적'],
+        ()=>['ok','미등록 디바이스 접속 흔적 없음'],
+        ()=>['info','골든 이미지 백도어 검사 · 이상 없음'],
+        ()=>['ok','숨은 지속성 작업 스케줄 점검 완료']],
+    p2:[()=>['info','헌팅 가설 검증 중…'],
+        c=>['ok',`숨은 위협 ${2+c%3}건 발견 · GUARD 전달`]],
+    done:()=>['ok','✓ 헌팅 완료 · 탐지 회피 시도 0건'] },
+  { id:'guard', name:'GUARD', role:'대응', accent:'#34d399',
+    p1:[()=>['info','침해 대응 플레이북 가동 대기'],
+        c=>['ok',`차단 IP ${fmtN(128+c*31)}건 · 방화벽 규칙 배포`],
+        ()=>['ok','격리 호스트 1건 · 포렌식 이미지 생성'],
+        ()=>['warn','무차별 대입 시도 · 계정 잠금 처리'],
+        c=>['ok',`긴급 패치 배포 · CVE-2025-13${30+c%60}`],
+        c=>['info',`엔드포인트 격리 정책 전파 ${96+c%3}%`],
+        ()=>['ok','침해 확산 차단 · 세그먼트 봉쇄 완료']],
+    p2:[()=>['info','대응 조치 감사 로그 기록…'],
+        ()=>['ok','복구 체크리스트 12/12 완료']],
+    done:c=>['ok',`✓ 대응 완료 · 차단 ${fmtN(143+c*33)}건 · 격리 1건`] },
+  { id:'sentinel', name:'SENTINEL', role:'감시', accent:'#f87171',
+    p1:[()=>['info','SIEM 파이프라인 상시 감시'],
+        c=>['warn',`이상 로그인 알림 ${2+c%3}건 · 심야 시간대`],
+        ()=>['ok','계정 탈취 의심 세션 강제 종료'],
+        ()=>['info','내부자 위험 스코어 상위 3건 추적'],
+        ()=>['ok','감사 로그 무결성 해시 검증 통과'],
+        ()=>['warn','USB 저장매체 반입 기록 1건 · 정책 위반'],
+        ()=>['info','취약점 스캔 작업 모니터링…'],
+        ()=>['ok','보안 등급 A- 유지 판정']],
+    p2:[()=>['info','알림 큐 드레인 중…'],
+        ()=>['ok','미확인 경보 0건 달성']],
+    done:()=>['ok','✓ 감시 완료 · 24/7 워치 리포트 전달'] },
+];
+const IX = Object.fromEntries(AGENTS.map((a,i)=>[a.id,i]));
+
+const GENERIC = c => [
+  ['info',`센서 온라인 16/16 · 링크 안정도 ${93+c%6}.${c%9}%`],
+  ['info',`이벤트 버퍼 ${34+(c*7)%22}% · 정상 범위`],
+  ['info','로그 수집 지연 0ms · 파이프라인 정상'],
+  ['info',`위협 레벨 ${c%3===0?'YELLOW 주의':'GREEN 안정'} 유지`],
+  ['ok',`시그니처 DB 동기화 완료 · ${fmtN(8400+c*12)}종`],
+  ['info',`엔드포인트 에이전트 응답 ${11+(c*5)%9}ms`],
+  ['info','백업 체크포인트 기록 · 암호화 저장'],
+  ['ok','무결성 검사 통과 · 변조 없음'],
+];
+
+const TOPICS = [
+  { title:'무차별 대입 공격 패턴 정밀 분석',
+    summary:c=>`최근 72시간 관리자 포트 대상 무차별 대입 시도가 평소 대비 3.2배 증가했습니다. 차단된 시도의 ${71+c%7}%가 3개 ASN에 집중되어 있으며, 자동화 도구에 의한 조직적 스캔으로 판단됩니다. 2단계 인증 미적용 계정이 주요 표적으로 확인되었습니다.`,
+    findings:[c=>`SSH(22/TCP) 대상 시도 ${fmtN(11800+c*73)}건 · 평균 3.1초 간격의 자동화 패턴`,
+              c=>`유출 자격증명 사전 8,000건과 일치율 ${4+c%3}.${c%8}% — 스터핑 시도 병행`,
+              c=>`차단 IP의 ${68+c%9}%가 TOR 출구 노드 또는 익명 프록시 경유`,
+              c=>`2FA 미적용 관리 계정 3개가 전체 시도의 4${1+c%5}% 집중 대상`],
+    sugg:['관리자 포트 접근을 VPN 화이트리스트로 제한',
+          '로그인 실패 5회 시 계정 잠금 + 실시간 알림 정책 적용',
+          '전 계정 FIDO2 기반 2단계 인증 단계적 배포',
+          '상위 3개 ASN 대상 지리 기반 차단 규칙 72시간 임시 적용'] },
+  { title:'내부망 이상 행위 탐지 정밀 분석',
+    summary:c=>`내부 사용자 계정 2개에서 배치 시간 외 대용량 질의 등 비정상 접근 패턴이 확인되었습니다. 평소 대비 ${38+c%9}배 분량의 데이터 접근이 시도되었으며, 일부는 권한 상승 시도로 이어진 것으로 추정됩니다.`,
+    findings:[c=>`야간(02~05시) 미사용 계정 로그인 ${12+c%7}회 · 정상 업무 시간과 불일치`,
+              c=>`단일 계정의 일 평균 ${38+c%9}배 분량 질의 탐지 · 데이터 유출 의심`,
+              'sudo 로그 시각대 위조 흔적 1건 · 원본 해시와 불일치',
+              c=>`미등록 디바이스의 내부망 접속 ${3}건 · MAC 스푸핑 가능성`],
+    sugg:['의심 계정 세션 강제 종료 및 자격증명 즉시 초기화',
+          'DLP 규칙에 대용량 질의 임계치 및 시간대 조건 추가',
+          '권한 있는 계정 대상 단계적 재인증(Step-up Auth) 적용',
+          'NAC 정책으로 미등록 디바이스 자동 격리 전환'] },
+  { title:'취약점 스캔 및 패치 우선순위 분석',
+    summary:c=>`전체 자산 대상 정기 스캔 결과 치명(Critical) 등급 ${4+c%3}건을 포함해 총 ${fmtN(3400+c*57)}건의 취약점이 확인되었습니다. 공개 익스플로잇이 존재하는 항목이 노출 서비스 상위 자산에 집중되어 있어 즉시 조치가 필요합니다.`,
+    findings:[c=>`Critical ${4+c%3}건 · 그중 2건은 공개 익스플로잇 존재 (CVSS 9.${1+c%8})`,
+              c=>`EOL 버전 미들웨어 사용 자산 ${9+c%4}건 · 벤더 패치 중단 상태`,
+              c=>`TLS 1.0 허용 서비스 ${5+c%4}건 · 다운그레이드 공격에 노출`,
+              '관리 콘솔 기본 자격증명 미변경 2건 · 즉시 변경 필요'],
+    sugg:['공개 익스플로잇 2건 24시간 내 긴급 패치 · 잔여 Critical 주간 창구',
+          'TLS 최소 버전 1.2로 정책 일괄 상향 및 감시 추가',
+          '기본 자격증명 변경 + 12자리 강도 정책 적용',
+          'EOL 자산 마이그레이션 분기별 로드맵 수립'] },
+];
+
+/* 진화 수치 — 사이클마다 미세 상승 */
+const confAt  = c => 0.862 + 0.004*c;
+const procAt  = c => 6400 + 318*c;
+const latAt   = c => Math.round(540 - 13*c);
+const scoreAt = c => 56 + 2.6*c + Math.sin(c*1.9)*1.6;
+const syncAt  = c => (97.8 + 0.1*c).toFixed(1);
+
+const PHASES = [
+  {tag:'PHASE 01', name:'침투 정찰 · 병렬 스캔', dur:8000},
+  {tag:'PHASE 02', name:'교차 상관 · 위협 검증', dur:6000},
+  {tag:'PHASE 03', name:'종합 대응 · 룰셋 진화', dur:8000},
+];
+const P1=8000, P2=6000, P3=8000, CYCLE_MS=P1+P2+P3;
+
+/* ================================================================
+   2. 캔버스 — 신경 숲 (노드 / 광섬유 / 흐르는 입자 / 수렴 결정화)
+================================================================ */
+const cv = $('#fx'), ctx = cv.getContext('2d');
+let W=0, H=0;
+function resizeCv(){
+  const d = Math.min(window.devicePixelRatio||1, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = W*d; cv.height = H*d;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  ctx.setTransform(d,0,0,d,0,0);
+  updateTarget();
+}
+
+/* 글로우 스프라이트 */
+function makeGlow(col){
+  const s=document.createElement('canvas'); s.width=s.height=64;
+  const g=s.getContext('2d');
+  const rg=g.createRadialGradient(32,32,0,32,32,32);
+  rg.addColorStop(0,`rgba(${col},0.9)`); rg.addColorStop(0.25,`rgba(${col},0.34)`); rg.addColorStop(1,`rgba(${col},0)`);
+  g.fillStyle=rg; g.fillRect(0,0,64,64); return s;
+}
+const SPR=[ makeGlow('34,211,238'), makeGlow('167,139,250') ];
+
+/* 노드 (시드 고정 — 재생 시 같은 숲 구조) */
+const NODES=[]; {
+  const r=mulberry32(20260922);
+  for(let i=0;i<16;i++){
+    let x=.5,y=.5,ok=false,tries=0;
+    while(!ok && tries++<80){
+      x=.06+r()*.88; y=.06+r()*.88;
+      ok=NODES.every(n=>((n.nx-x)**2+(n.ny-y)**2)>.046);
+    }
+    NODES.push({nx:x,ny:y,r:2+r()*2.5,ph:r()*6.28,ph2:r()*6.28,amp:5+r()*9,
+                w:.1+r()*.26,hue:r()<.62?0:1,x:0,y:0});
+  }
+}
+/* 광섬유 간선 (kNN → 거리순 정렬, 밀도에 따라 가시 개수 결정) */
+const EDGES=[]; {
+  const seen={};
+  NODES.forEach((a,i)=>{
+    NODES.map((b,j)=>({j,d:i===j?9:Math.hypot(a.nx-b.nx,a.ny-b.ny)}))
+      .sort((p,q)=>p.d-q.d).slice(0,3)
+      .forEach(({j})=>{
+        const k=Math.min(i,j)+'-'+Math.max(i,j);
+        if(!seen[k]){seen[k]=1;EDGES.push({a:Math.min(i,j),b:Math.max(i,j),sign:EDGES.length%2?1:-1,nd:0});}
+      });
+  });
+  EDGES.forEach(e=>{const A=NODES[e.a],B=NODES[e.b];e.nd=Math.hypot(A.nx-B.nx,A.ny-B.ny);});
+  EDGES.sort((p,q)=>p.nd-q.nd);
+}
+/* 네뷸라 */
+const NEB=[]; {
+  const r=mulberry32(777);
+  for(let i=0;i<5;i++) NEB.push({nx:.15+r()*.7,ny:.15+r()*.7,r:.26+r()*.34,ph:r()*7,hue:i%3,alpha:.05+r()*.045});
+}
+/* 흐르는 입자 */
+const FLOWS=[];
+for(let i=0;i<88;i++) FLOWS.push({e:0,t:Math.random(),sp:.00022+Math.random()*.00042,
+  dir:Math.random()<.5?1:-1,sz:.8+Math.random()*1.5,px:0,py:0,init:false});
+FLOWS.forEach(f=>f.e=(Math.random()*Math.max(4,EDGES.length*.55))|0);
+
+/* 수렴 스파크 / 결정화 링 */
+let SPARKS=[], RINGS=[], crystalHeat=0;
+let TARGET={x:innerWidth*.75,y:innerHeight*.45};
+const reportEl=$('#report');
+function updateTarget(){
+  const r=reportEl.getBoundingClientRect();
+  TARGET={x:r.left+r.width/2, y:r.top+r.height*.42};
+}
+setInterval(updateTarget,800);
+
+/* 월드 상태 (사이클이 거듭될수록 진화) */
+let worldBright=.78, worldDensity=.55, visEdgeCount=4;
+
+function edgeGeom(k){
+  const A=NODES[EDGES[k].a], B=NODES[EDGES[k].b];
+  const dx=B.x-A.x, dy=B.y-A.y, L=Math.hypot(dx,dy)||1;
+  const off=EDGES[k].sign*L*.22;
+  return {A,B,cx:(A.x+B.x)/2-dy/L*off, cy:(A.y+B.y)/2+dx/L*off};
+}
+function qbez(p0,c,p1,t){const u=1-t;return{x:u*u*p0.x+2*u*t*c.x+t*t*p1.x,y:u*u*p0.y+2*u*t*c.y+t*t*p1.y}}
+function drawHex(x,y,r,rot,style){
+  ctx.strokeStyle=style;ctx.lineWidth=1.4;ctx.beginPath();
+  for(let k=0;k<6;k++){const a=rot+k*Math.PI/3;const px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;
+    k?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+  ctx.closePath();ctx.stroke();
+}
+
+let lastT=performance.now();
+function tick(now){
+  requestAnimationFrame(tick);
+  const dt=Math.min(50,now-lastT); lastT=now;
+  const t=now-cycleStart;
+
+  /* 페이즈 파라미터 */
+  let flow;
+  if(t<P1)            flow=.35+.65*easeOut(Math.min(1,t/2600));
+  else if(t<P1+P2)    flow=1-.35*easeIO(Math.min(1,(t-P1)/2500));
+  else                flow=.65+.2*Math.min(1,(t-P1-P2)/1200);
+  let cvg=0;
+  if(t>=P1+P2){
+    if(t<16500)       cvg=easeIO((t-14000)/2500);
+    else if(t<19300)  cvg=1;
+    else              cvg=1-easeOut(Math.min(1,(t-19300)/1600));
+  }
+  cvg=clamp(cvg,0,1);
+  const flowVis=flow*(1-cvg*.95);
+  visEdgeCount=Math.max(4,Math.floor(EDGES.length*worldDensity));
+
+  /* 노드 위치 (미세 드리프트) */
+  for(const n of NODES){
+    n.x=n.nx*W+Math.sin(now*.001*n.w+n.ph)*n.amp;
+    n.y=n.ny*H+Math.cos(now*.0013*n.w+n.ph2)*n.amp;
+  }
+
+  ctx.clearRect(0,0,W,H);
+
+  /* 네뷸라 */
+  for(const b of NEB){
+    const x=(b.nx+Math.sin(now*.00007+b.ph)*.08)*W;
+    const y=(b.ny+Math.cos(now*.00009+b.ph)*.08)*H;
+    const R=b.r*Math.min(W,H)*1.6;
+    const col=[[34,211,238],[167,139,250],[56,96,210]][b.hue];
+    const g=ctx.createRadialGradient(x,y,0,x,y,R);
+    g.addColorStop(0,`rgba(${col},${b.alpha})`); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.fillRect(x-R,y-R,R*2,R*2);
+  }
+
+  ctx.globalCompositeOperation='lighter';
+
+  /* 광섬유 */
+  const bright=Math.min(1.05,worldBright);
+  for(let i=0;i<visEdgeCount;i++){
+    const {A,B,cx,cy}=edgeGeom(i);
+    const shim=.7+.3*Math.sin(now*.0016+i*1.7);
+    ctx.strokeStyle=i%4===3?`rgba(150,130,250,${.11*shim*bright})`:`rgba(96,150,235,${.085*shim*bright})`;
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.quadraticCurveTo(cx,cy,B.x,B.y);ctx.stroke();
+  }
+
+  /* 흐르는 입자 */
+  const flowSpeed=.55+.75*flow;
+  for(const f of FLOWS){
+    if(f.e>=visEdgeCount){f.e=(Math.random()*visEdgeCount)|0;f.init=false;}
+    f.t+=f.sp*dt*flowSpeed*f.dir;
+    if(f.t>1||f.t<0){
+      f.e=(Math.random()*visEdgeCount)|0; f.dir*=-1; f.t=f.dir>0?0:1; f.init=false;
+      if(Math.random()<.5)f.dir=Math.random()<.5?1:-1, f.t=Math.random();
+    }
+    const g=edgeGeom(f.e);
+    const p=qbez(g.A,{x:g.cx,y:g.cy},g.B,f.t);
+    const hue=NODES[EDGES[f.e].a].hue;
+    const a=clamp(flowVis*(.45+.45*Math.sin(now*.004+f.t*9+f.e)),0,1);
+    if(f.init&&a>.02){
+      ctx.globalAlpha=a*.8;
+      ctx.strokeStyle=hue?'rgba(185,160,255,1)':'rgba(130,225,245,1)';
+      ctx.lineWidth=f.sz;
+      ctx.beginPath();ctx.moveTo(f.px,f.py);ctx.lineTo(p.x,p.y);ctx.stroke();
+    }
+    if(a>.02){
+      const s=7*f.sz+3;
+      ctx.globalAlpha=a*.9;
+      ctx.drawImage(SPR[hue],p.x-s,p.y-s,s*2,s*2);
+    }
+    f.px=p.x;f.py=p.y;f.init=true;
+  }
+
+  /* 수렴 스파크 (결정화) */
+  if(cvg>.12&&cvg<.97&&SPARKS.length<80&&Math.random()<cvg*.5){
+    const n=NODES[(Math.random()*NODES.length)|0];
+    SPARKS.push({sx:n.x,sy:n.y,t0:now,dur:900+Math.random()*900,
+                 hue:Math.random()<.6?0:1,rot:Math.random()*6.28,amp:60+Math.random()*90});
+  }
+  SPARKS=SPARKS.filter(s=>{
+    const e=(now-s.t0)/s.dur;
+    if(e>=1){crystalHeat=Math.min(1,crystalHeat+.02);return false;}
+    const ee=e*e*(3-2*e);
+    const x=s.sx+(TARGET.x-s.sx)*ee+Math.cos(s.rot+ee*5)*s.amp*(1-ee);
+    const y=s.sy+(TARGET.y-s.sy)*ee+Math.sin(s.rot+ee*5)*s.amp*(1-ee);
+    const sz=5+4*ee;
+    ctx.globalAlpha=(.35+.65*ee)*cvg;
+    ctx.drawImage(SPR[s.hue],x-sz,y-sz,sz*2,sz*2);
+    return true;
+  });
+  if(cvg<.1) crystalHeat*=.94;
+
+  /* 결정화 코어 */
+  if(cvg>.03){
+    const pul=.85+.15*Math.sin(now*.004);
+    ctx.globalAlpha=cvg*.4;
+    ctx.drawImage(SPR[1],TARGET.x-95,TARGET.y-95,190,190);
+    ctx.globalAlpha=cvg*.28*Math.min(1,crystalHeat*2);
+    ctx.drawImage(SPR[0],TARGET.x-150,TARGET.y-150,300,300);
+    drawHex(TARGET.x,TARGET.y,14*pul,now*.0012,`rgba(34,211,238,${.85*cvg})`);
+    drawHex(TARGET.x,TARGET.y,22*cvg,-now*.0008,`rgba(167,139,250,${.4*cvg})`);
+  }
+
+  /* 확장 링 */
+  RINGS=RINGS.filter(r=>now-r.t0<800);
+  for(const r of RINGS){
+    const e=(now-r.t0)/800, rad=12+e*95;
+    ctx.globalAlpha=(1-e)*.5;
+    ctx.strokeStyle=RINGS.indexOf(r)%2?'rgba(167,139,250,1)':'rgba(34,211,238,1)';
+    ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.arc(TARGET.x,TARGET.y,rad,0,6.2832);ctx.stroke();
+  }
+
+  /* 노드 (숨쉬는 맥동) */
+  for(const n of NODES){
+    const pul=Math.sin(now*.0021+n.ph);
+    const sc=1+.16*pul;
+    const R=n.r*sc*(2.2+bright*1.4);
+    ctx.globalAlpha=clamp((.35+.3*(pul*.5+.5))*bright,0,1);
+    ctx.drawImage(SPR[n.hue],n.x-R*3.2,n.y-R*3.2,R*6.4,R*6.4);
+    ctx.globalAlpha=.95;
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r*.75*sc,0,6.2832);
+    ctx.fillStyle=n.hue?'#d3c3ff':'#b5f1ff';ctx.fill();
+  }
+
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;
+}
+
+/* ================================================================
+   3. UI — 에이전트 벨트 / 페이즈 / 리포트 / 지표
+================================================================ */
+const beltEl=$('#belt');
+beltEl.innerHTML=AGENTS.map((a,i)=>`
+  <div class="agent glass" id="ag-${i}">
+    <div class="agent-head">
+      <span class="agent-name" style="color:${a.accent}">${a.name}</span>
+      <span class="agent-role">${a.role}</span>
+      <span class="agent-status"><span class="dot"></span><span class="st-txt">대기</span></span>
+    </div>
+    <div class="logs"><div class="log-idle">standby…</div></div>
+  </div>`).join('');
+const agentEls=AGENTS.map((a,i)=>$('#ag-'+i));
+const TAG={info:'INFO',ok:'OK',warn:'WARN'};
+
+function setStatus(i,st){
+  const el=agentEls[i];
+  el.classList.remove('run','done');
+  if(st!=='idle') el.classList.add(st);
+  el.querySelector('.st-txt').textContent = st==='run'?'활동 중':st==='done'?'완료 ✓':'대기';
+}
+function addLog(i,[lvl,msg]){
+  const box=agentEls[i].querySelector('.logs');
+  const idle=box.querySelector('.log-idle'); if(idle)idle.remove();
+  const d=document.createElement('div');
+  d.className='log-line '+lvl;
+  d.innerHTML=`<span class="t">${new Date().toTimeString().slice(0,8)}</span><span class="lv ${lvl}">${TAG[lvl]}</span><span class="msg">${msg}</span>`;
+  box.appendChild(d);
+  while(box.children.length>20) box.firstChild.remove();
+}
+
+/* 페이즈 표시 */
+const phaseTag=$('#phaseTag'), phaseName=$('#phaseName'), phaseFill=$('#phaseFill'),
+      phaseDots=[...$('#phaseDots').children], emptyLabel=$('#emptyLabel');
+function setPhase(n){
+  const p=PHASES[n-1];
+  phaseTag.textContent=p.tag; phaseName.textContent=p.name;
+  phaseDots.forEach((d,i)=>d.classList.toggle('on',i<n));
+  phaseFill.style.transition='none'; phaseFill.style.width='0%';
+  void phaseFill.offsetWidth;
+  phaseFill.style.transition=`width ${p.dur}ms linear`; phaseFill.style.width='100%';
+  if(n===1) emptyLabel.textContent='위협 텔레메트리 수집 중…';
+  if(n===2) emptyLabel.textContent='침투 징후 교차 검증 중…';
+}
+
+/* 타이핑 */
+function typeText(el,text,cps){
+  el.textContent='';
+  for(let i=1;i<=text.length;i++){
+    const n=i;
+    after(Math.round(i*(1000/cps)),()=>{el.textContent=text.slice(0,n);});
+  }
+}
+
+/* 지표 차트 */
+const chartEl=$('#chart'), chartNowEl=$('#chartNow');
+let chartVals=[];
+function drawChart(hl=-1){
+  const w=300,h=58,pad=6,n=12,step=(w-2*pad)/n,bw=step-5,max=92;
+  let bars='',px=pad,py=h-6-(chartVals[0]/max)*(h-14);
+  let path=`M ${px.toFixed(1)} ${py.toFixed(1)}`;
+  chartVals.forEach((v,i)=>{
+    const bh=(v/max)*(h-14), y=h-6-bh, x=pad+i*step+2;
+    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1,bh).toFixed(1)}" rx="2" class="cbar${i===hl?' hl':''}"/>`;
+    path+=` L ${(x-2).toFixed(1)} ${py.toFixed(1)} L ${(x-2).toFixed(1)} ${y.toFixed(1)}`;
+    py=y;
+  });
+  path+=` L ${(w-pad).toFixed(1)} ${py.toFixed(1)}`;
+  chartEl.innerHTML=`<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs><line x1="6" y1="${h-5}" x2="${w-6}" y2="${h-5}" class="cbase"/>${bars}<path d="${path}" class="cline"/>`;
+}
+function pushScore(v){
+  chartVals.push(v); if(chartVals.length>12)chartVals.shift();
+  const idx=chartVals.length-1, from=chartVals[idx-1]??v*.7;
+  tween(from,v,950,x=>{chartVals[idx]=x;drawChart(idx);});
+}
+
+/* 버전 배지 */
+const vbadgesEl=$('#vbadges');
+let activeVersion=6;
+function renderVersions(active,flash){
+  vbadgesEl.innerHTML=[active-2,active-1,active].map(v=>
+    `<span class="vbadge${v===active?' on':''}${v===active&&flash?' flash':''}">v${v}</span>`).join('');
+}
+
+/* 통계 카운터 */
+const confValEl=$('#confVal'), procValEl=$('#procVal'), latValEl=$('#latVal'),
+      rConfEl=$('#rConf'), confBarEl=$('#confBar'), netstatEl=$('#netstat');
+function bump(el){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');
+  setTimeout(()=>el.classList.remove('bump'),900);}
+
+/* 배포 (탐지 룰셋 1세대 진화) */
+function deploy(c){
+  activeVersion=c;
+  renderVersions(c,true);
+  const s=scoreAt(c);
+  pushScore(s);
+  tween(parseFloat(chartNowEl.textContent)||s*.97,s,900,v=>chartNowEl.textContent=v.toFixed(1));
+  tween(confAt(c-1),confAt(c),1000,v=>confValEl.textContent=v.toFixed(3));
+  tween(procAt(c-1),procAt(c),1000,v=>procValEl.textContent=fmtN(Math.round(v)));
+  tween(latAt(c-1),latAt(c),1000,v=>latValEl.textContent=Math.round(v));
+  [confValEl,procValEl,latValEl].forEach(bump);
+  worldBright=Math.min(1.02,worldBright+.05);
+  worldDensity=Math.min(1,worldDensity+.09);
+  netstatEl.textContent=`SENSORS 16 · FEEDS ${Math.round(EDGES.length*worldDensity)} · SYNC ${syncAt(c)}%`;
+}
+
+/* ================================================================
+   4. 보고서 조립
+================================================================ */
+const rBadge=$('#rBadge'), rTitleWrap=$('#rTitleWrap'), rTitle=$('#rTitle'),
+      rMeta=$('#rMeta'), rSumSec=$('#rSumSec'), rSumText=$('#rSumText'),
+      rFindSec=$('#rFindSec'), rFindings=$('#rFindings'),
+      rSuggSec=$('#rSuggSec'), rSuggs=$('#rSuggs'), rFoot=$('#rFoot');
+const show=el=>el.classList.add('show');
+const scrollReport=()=>{ const b=reportEl.querySelector('.report-body');
+  if(b.scrollHeight>b.clientHeight+4) b.scrollTo({top:b.scrollHeight,behavior:'smooth'}); };
+
+function beginAssemble(c){
+  const tp=TOPICS[(c-1)%TOPICS.length];
+  reportEl.classList.remove('waiting');
+  reportEl.classList.add('assembling');
+  RINGS.push({t0:performance.now()});
+
+  rBadge.textContent=`CYCLE ${pad3(c)} · 위협 분석 리포트`;
+  rFindings.innerHTML=tp.findings.map((f,i)=>
+    `<li class="finding"><span class="fnum">${String(i+1).padStart(2,'0')}</span><span>${f(c)}</span></li>`).join('');
+  rSuggs.innerHTML=tp.sugg.map(s=>
+    `<li class="sugg"><span class="chev">▸</span><span>${s}</span></li>`).join('');
+  reportEl.querySelectorAll('.rv').forEach(e=>e.classList.remove('show'));
+  rFindings.querySelectorAll('.finding').forEach(e=>e.classList.remove('show'));
+  rSuggs.querySelectorAll('.sugg').forEach(e=>e.classList.remove('show'));
+  confBarEl.style.width='0%';
+
+  at(15300,()=>{ show(rBadge); rTitleWrap.classList.add('typing'); show(rTitleWrap);
+    typeText(rTitle,tp.title,26);
+    after(Math.round(tp.title.length*(1000/26))+80,()=>rTitleWrap.classList.remove('typing')); });
+  at(16650,()=>{ const time=new Date().toTimeString().slice(0,8);
+    rMeta.innerHTML=`생성 ${time} · 센서 ${11+c%4}개 · 분석 이벤트 ${fmtN(1180+c*173)}건<br>검증 통과 ${10+c%5}/${10+c%5} 항목 · 에이전트 6기 병렬`;
+    show(rMeta); });
+  at(17000,()=>{ show(rSumSec); rSumSec.classList.add('typing');
+    typeText(rSumText,tp.summary(c),38);
+    after(Math.round(tp.summary(c).length*(1000/38))+80,()=>rSumSec.classList.remove('typing')); });
+  at(17950,()=>{ show(rFindSec);
+    [...rFindings.children].forEach((li,i)=>at(17950+i*150,()=>li.classList.add('show')));
+    at(18700,()=>scrollReport()); });
+  at(18800,()=>{ show(rSuggSec);
+    [...rSuggs.children].forEach((li,i)=>at(18800+i*140,()=>li.classList.add('show')));
+    at(19500,()=>scrollReport()); });
+  at(19450,()=>{ show(rFoot); scrollReport();
+    confBarEl.style.width=(confAt(c)*100).toFixed(1)+'%';
+    tween(confAt(c-1),confAt(c),1100,v=>rConfEl.textContent=v.toFixed(3)); });
+  at(20650,()=>{ reportEl.classList.remove('assembling'); reportEl.classList.add('done');
+    RINGS.push({t0:performance.now()}); });
+}
+
+/* ================================================================
+   5. 사이클 오케스트라
+================================================================ */
+const cycleEl=$('#cycleNum');
+let cycleNum=7;
+
+function startCycle(c){
+  cycleNum=c; cycleStart=performance.now();
+  cycleEl.textContent=pad3(c);
+  cycleEl.classList.remove('tick'); void cycleEl.offsetWidth; cycleEl.classList.add('tick');
+  setPhase(1);
+
+  /* 에이전트 초기화 */
+  agentEls.forEach((el,i)=>{
+    setStatus(i,'idle');
+    el.querySelector('.logs').innerHTML='<div class="log-idle">standby…</div>';
+  });
+  /* 리포트 초기화 */
+  reportEl.classList.add('waiting');
+  reportEl.classList.remove('assembling','done');
+
+  /* Phase 1 — 순차 활성화 + 로그 스트리밍 */
+  AGENTS.forEach((ag,i)=>{
+    const act=350+i*300;
+    at(act,()=>setStatus(i,'run'));
+    const pool=shuffle(ag.p1.map(f=>f(c)));
+    const gen=GENERIC(c);
+    let t=act+320, k=0;
+    while(t<7150){
+      const L=k<pool.length?pool[k]:gen[(k-pool.length+i*3)%gen.length];
+      at(t,()=>addLog(i,L)); k++; t+=235+Math.random()*225;
+    }
+    /* Phase 2 — 로그 감속 + 마무리 */
+    let t2=8150+Math.random()*350;
+    ag.p2.map(f=>f(c)).forEach(L=>{ at(t2,()=>addLog(i,L)); t2+=540+Math.random()*430; });
+    at(13050+Math.random()*300,()=>{ addLog(i,ag.done(c)); setStatus(i,'done'); });
+  });
+
+  at(8000,()=>setPhase(2));
+  at(14000,()=>setPhase(3));
+  at(14950,()=>addLog(IX.analyst,['info','결정화 시퀀스 개시 · 보고서 조립']));
+  at(15000,()=>beginAssemble(c));
+  at(16800,()=>addLog(IX.sentinel,['ok','조립 중 보고서 실시간 검증']));
+  at(19500,()=>deploy(c));
+  at(19650,()=>addLog(IX.guard,['ok',`탐지 룰셋 v${c} 배포 완료 · 정밀도 갱신`]));
+  at(19900,()=>addLog(IX.sentinel,['ok',`룰셋 v${c} 전 센서 동기화 승인`]));
+  at(22100,()=>startCycle(c+1));
+}
+
+function resetAll(){
+  clearTimers(); killTweens();
+  cycleStart=performance.now();
+  SPARKS=[]; RINGS=[]; crystalHeat=0;
+  activeVersion=6; worldBright=.78; worldDensity=.55;
+  chartVals=Array.from({length:12},(_,k)=>scoreAt(k-5));
+  drawChart();
+  renderVersions(6,false);
+  confValEl.textContent=confAt(6).toFixed(3);
+  procValEl.textContent=fmtN(procAt(6));
+  latValEl.textContent=latAt(6);
+  chartNowEl.textContent=scoreAt(6).toFixed(1);
+  netstatEl.textContent=`SENSORS 16 · FEEDS ${Math.round(EDGES.length*worldDensity)} · SYNC ${syncAt(6)}%`;
+  reportEl.classList.add('waiting');
+  reportEl.classList.remove('assembling','done');
+  reportEl.querySelectorAll('.rv').forEach(e=>e.classList.remove('show'));
+  setPhase(1);
+  after(650,()=>startCycle(7));
+}
+
+/* 시계 */
+const clockEl=$('#clock');
+function tickClock(){clockEl.textContent=new Date().toTimeString().slice(0,8);}
+setInterval(tickClock,1000); tickClock();
+
+/* 리플레이 */
+$('#replay').addEventListener('click',resetAll);
+addEventListener('keydown',e=>{if(e.key==='r'||e.key==='R')resetAll();});
+
+/* ================================================================
+   6. 부트
+================================================================ */
+addEventListener('resize',resizeCv);
+resizeCv();
+requestAnimationFrame(tick);
+resetAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# 시뮬레이터 생성물 (재생성 가능: python main.py --local contracts)
+web3-red-team-simulator/.rts_workdir/
+web3-red-team-simulator/reports/
+
+# 에디터/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 환경변수/시크릿
+.env
+*.key
